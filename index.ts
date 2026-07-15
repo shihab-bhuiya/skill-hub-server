@@ -91,9 +91,22 @@ async function startServer() {
         // Get All Coureses
         app.get("/courses", async (req: Request, res: Response) => {
             try {
-                const courses = await coursesCollection.find().toArray();
+                const search = req.query.search as string;
 
-                res.status(200).json(courses);
+                const query = search
+                    ? {
+                        title: {
+                            $regex: search,
+                            $options: "i",
+                        },
+                    }
+                    : {};
+
+                const courses = await coursesCollection
+                    .find(query)
+                    .toArray();
+
+                res.json(courses);
             } catch (error) {
                 res.status(500).json({
                     message: "Failed to fetch courses",
@@ -102,6 +115,29 @@ async function startServer() {
         });
 
         // Get individual courses api 
+        app.get("/courses/:id", async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params as {
+                    id: string
+                };
+
+                const course = await coursesCollection.findOne({
+                    _id: new ObjectId(id),
+                });
+
+                if (!course) {
+                    return res.status(404).json({
+                        message: "Course not found",
+                    });
+                }
+
+                res.json(course);
+            } catch (error) {
+                res.status(500).json({
+                    message: "Something went wrong",
+                });
+            }
+        });
 
         // Delete api of individual courses
         app.delete("/courses/:id", async (req: Request, res: Response) => {
