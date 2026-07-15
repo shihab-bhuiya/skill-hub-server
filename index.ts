@@ -89,6 +89,38 @@ async function startServer() {
         });
 
         // Get All Coureses
+        app.get("/courses", async (req: Request, res: Response) => {
+            try {
+                const courses = await coursesCollection.find().toArray();
+
+                res.status(200).json(courses);
+            } catch (error) {
+                res.status(500).json({
+                    message: "Failed to fetch courses",
+                });
+            }
+        });
+
+        // Get individual courses api 
+
+        // Delete api of individual courses
+        app.delete("/courses/:id", async (req: Request, res: Response) => {
+            try {
+                const { id } = req.params as {
+                    id: string,
+                };
+
+                const result = await coursesCollection.deleteOne({
+                    _id: new ObjectId(id),
+                });
+
+                res.json(result);
+            } catch (error) {
+                res.status(500).json({
+                    message: "Failed to delete course",
+                });
+            }
+        });
 
         app.listen(port, () => {
             console.log(`🚀 Server running on http://localhost:${port}`);
