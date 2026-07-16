@@ -189,6 +189,37 @@ async function startServer() {
             }
         });
 
+        // Get Course by email API
+        app.get("/my-courses/:email", async (req: Request, res: Response) => {
+            try {
+                const email = req.params.email;
+
+                const enrollments = await enrollmentsCollection
+                    .find({
+                        userEmail: email,
+                    })
+                    .toArray();
+
+                const courseIds = enrollments.map(
+                    (enrollment) => new ObjectId(enrollment.courseId)
+                );
+
+                const courses = await coursesCollection
+                    .find({
+                        _id: {
+                            $in: courseIds,
+                        },
+                    })
+                    .toArray();
+
+                res.json(courses);
+            } catch (error) {
+                res.status(500).json({
+                    message: "Failed to fetch courses",
+                });
+            }
+        });
+
         app.listen(port, () => {
             console.log(`🚀 Server running on http://localhost:${port}`);
         });
