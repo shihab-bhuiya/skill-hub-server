@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 
 async function startServer() {
     try {
-        await client.connect();
+        // await client.connect();
 
         console.log("✅ MongoDB Connected");
 
@@ -92,20 +92,15 @@ async function startServer() {
         // Get All Coureses
         app.get("/courses", async (req: Request, res: Response) => {
             try {
-                const search = req.query.search as string;
+                const limit = Number(req.query.limit) || 0;
 
-                const query = search
-                    ? {
-                        title: {
-                            $regex: search,
-                            $options: "i",
-                        },
-                    }
-                    : {};
+                let query = coursesCollection.find({});
 
-                const courses = await coursesCollection
-                    .find(query)
-                    .toArray();
+                if (limit > 0) {
+                    query = query.limit(limit);
+                }
+
+                const courses = await query.toArray();
 
                 res.json(courses);
             } catch (error) {
