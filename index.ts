@@ -33,6 +33,7 @@ async function startServer() {
         const db = client.db("skill-Hub");
         const usersCollection = db.collection("users");
         const coursesCollection = db.collection("courses");
+        const enrollmentsCollection = db.collection("enrollments");
 
         app.get("/", (req: Request, res: Response) => {
             res.send("Server is running");
@@ -154,6 +155,36 @@ async function startServer() {
             } catch (error) {
                 res.status(500).json({
                     message: "Failed to delete course",
+                });
+            }
+        });
+
+
+        // Create Enrollment API
+        app.post("/enrollments", async (req: Request, res: Response) => {
+            try {
+                const enrollment = req.body;
+
+                const alreadyEnrolled = await enrollmentsCollection.findOne({
+                    courseId: enrollment.courseId,
+                    userId: enrollment.userId,
+                });
+
+                if (alreadyEnrolled) {
+                    return res.status(400).json({
+                        message: "Already enrolled",
+                    });
+                }
+
+                enrollment.enrolledAt = new Date();
+
+                const result = await enrollmentsCollection.insertOne(enrollment);
+
+                res.status(201).json(result);
+
+            } catch (error) {
+                res.status(500).json({
+                    message: "Enrollment failed",
                 });
             }
         });
